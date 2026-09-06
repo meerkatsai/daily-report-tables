@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Flipkart Daily Report Table</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<style>
+*{box-sizing:border-box}
+:root{
+  --bg:#F6F7F9; --surface:#FFFFFF; --ink:#1B2430; --ink-2:#5A6572; --ink-3:#8B95A1;
+  --line:#E4E8ED; --line-soft:#EEF1F4; --total-bg:#161D28; --total-ink:#F2F5F8;
+  --row-alt:#FBFCFD; --accent:#C99700;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#12161C; --surface:#1A2028; --ink:#E8ECF1; --ink-2:#9AA6B3; --ink-3:#6E7A87;
+    --line:#2A323D; --line-soft:#232A34; --total-bg:#060809; --total-ink:#EDF1F5; --row-alt:#1E252E;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#12161C; --surface:#1A2028; --ink:#E8ECF1; --ink-2:#9AA6B3; --ink-3:#6E7A87;
+  --line:#2A323D; --line-soft:#232A34; --total-bg:#060809; --total-ink:#EDF1F5; --row-alt:#1E252E;
+}
+body{background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans",-apple-system,"Segoe UI",Roboto,sans-serif;font-size:14px;margin:0;padding:28px 28px 48px}
+.head{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:6px}
+h1{font-size:21px;font-weight:700;margin:0;letter-spacing:-.01em}
+h1 .pname{color:var(--accent)}
+.sub{color:var(--ink-2);font-size:13px}
+.sample{display:inline-block;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);border:1px solid var(--line);border-radius:99px;padding:2px 10px}
+.tabs{display:flex;gap:2px;margin:18px 0 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.tab{background:none;border:none;border-bottom:2px solid transparent;color:var(--ink-2);font:inherit;font-size:14px;font-weight:500;padding:9px 14px;cursor:pointer}
+.tab:hover{color:var(--ink)}
+.tab:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.tab.on{color:var(--ink);font-weight:600;border-bottom-color:var(--ink)}
+.scroller{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:10px;margin-top:16px}
+table{border-collapse:separate;border-spacing:0;width:max-content;min-width:100%;font-variant-numeric:tabular-nums}
+th,td{padding:9px 13px;white-space:nowrap;text-align:right;border-bottom:1px solid var(--line-soft)}
+thead .bands th{padding:8px 13px;text-align:center;color:#fff;background:var(--accent);font-size:12.5px;font-weight:700;letter-spacing:.14em;border-bottom:none}
+thead .cols th{font-size:10.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);border-bottom:1px solid var(--line)}
+th.rowlab,td.rowlab{text-align:left;position:sticky;left:0;background:var(--surface);z-index:2;border-right:1px solid var(--line);font-weight:600;min-width:118px}
+thead .bands th.rowlab{background:var(--surface)}
+td .dow{color:var(--ink-3);font-weight:400;font-size:12px;margin-left:5px}
+tbody tr:nth-child(even) td{background:var(--row-alt)}
+tbody tr:nth-child(even) td.rowlab{background:var(--row-alt)}
+td.hl{font-weight:700}
+tr.total td{background:var(--total-bg)!important;color:var(--total-ink);border-bottom:none;font-weight:600}
+tr.total td.rowlab{background:var(--total-bg)!important;font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+.note{color:var(--ink-2);font-size:12.5px;margin:10px 2px 0}
+</style>
+</head>
+<body>
+<div class="head">
+  <h1><span class="pname">FLIPKART</span> Daily Report</h1>
+  <span class="sub">Native vocabulary: ROI (multiplier, includes indirect sales) with Direct ROI beside it; impressions are Views. Never show ACOS or a ROAS label here.</span>
+  <span class="sample">Sample data — replace DAILY with API rows</span>
+</div>
+<div class="tabs" role="tablist" id="tabs"></div>
+<div class="scroller"><table id="tbl"></table></div>
+<p class="note" id="tabnote"></p>
+<script>
+/* ============ formatting (Indian digit grouping) ============ */
+const inr  = n => "\u20B9" + Math.round(n).toLocaleString("en-IN");
+const inr2 = n => "\u20B9" + n.toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2});
+const num  = n => Math.round(n).toLocaleString("en-IN");
+const pct  = n => n.toFixed(2) + "%";
+const pct1 = n => n.toFixed(1) + "%";
+const mult = n => n.toFixed(2) + "x";
+
+/* ============ COLUMN CONTRACT — FLIPKART native vocabulary ============ */
+/* Rates are ALWAYS recomputed from summed counts, never averaged. */
+const COLS = [
+  {h:"Spend",      f:r=>inr(r.spend)},
+  {h:"Sales",      f:r=>inr(r.sales)},
+  {h:"Units",      f:r=>num(r.units)},
+  {h:"Clicks",     f:r=>num(r.clicks)},
+  {h:"Views",      f:r=>num(r.impressions)},               /* Flipkart's word for impressions */
+  {h:"ROI",        f:r=>mult(r.sales/r.spend), hl:true},   /* total (direct+indirect) revenue / spend */
+  {h:"Direct ROI", f:r=>mult(r.directSales/r.spend)},      /* advertised-product revenue / spend */
+  {h:"CPC",        f:r=>inr2(r.spend/r.clicks)},
+  {h:"CVR",        f:r=>pct(r.orders/r.clicks*100)},
+  {h:"AOV",        f:r=>inr2(r.sales/r.orders)},
+];
+
+/* ============ sample data: one row per day (newest first) ============ */
+/* Replace with API rows keeping these base fields; all rates derive from them. */
+const DAYS = [
+  {d:"5 Sept", dow:"Sat"}, {d:"4 Sept", dow:"Fri"}, {d:"3 Sept", dow:"Thu"},
+  {d:"2 Sept", dow:"Wed"}, {d:"1 Sept", dow:"Tue"},
+];
+const DAILY = [
+  {spend:7480,  sales:5590, directSales:4420, orders:12, units:12, clicks:549,  impressions:93210},
+  {spend:6430,  sales:5880, directSales:4870, orders:11, units:11, clicks:583,  impressions:85630},
+  {spend:9310,  sales:6180, directSales:4700, orders:14, units:14, clicks:693,  impressions:103870},
+  {spend:8890,  sales:7280, directSales:5750, orders:16, units:16, clicks:764,  impressions:114520},
+  {spend:10650, sales:7020, directSales:5270, orders:15, units:15, clicks:1104, impressions:191330},
+];
+
+/* weekly / monthly demo periods: scaled from the 5-day base (replace with real rollups) */
+const WEEKS  = [{d:"Wk 36", dow:"1\u20137 Sep", f:1.38},{d:"Wk 35", dow:"25\u201331 Aug", f:1.31},{d:"Wk 34", dow:"18\u201324 Aug", f:1.44},{d:"Wk 33", dow:"11\u201317 Aug", f:1.26}];
+const MONTHS = [{d:"Sept", dow:"MTD", f:1.0},{d:"Aug", dow:"", f:5.9},{d:"July", dow:"", f:5.4},{d:"June", dow:"", f:6.2}];
+
+const PLACEMENTS = [["Top of Search",.38,1.30],["Rest of Search",.27,.82],["Browse",.19,.70],["Product Page",.16,.95]];  /* [name, spend share, efficiency multiplier] */
+const EFF_LABEL = "ROI";
+
+function sumRows(rows){ const t={}; rows.forEach(r=>Object.keys(r).forEach(k=>t[k]=(t[k]||0)+r[k])); return t; }
+function scaleRow(r,f,j){ const o={}; Object.keys(r).forEach((k,i)=>o[k]=r[k]*f*(1+0.07*Math.sin(j*2.7+i))); return o; }
+
+function header(firstLabel){
+  let h = `<thead><tr class="bands"><th class="rowlab">${firstLabel}</th><th colspan="${COLS.length}">FLIPKART</th></tr>`;
+  h += `<tr class="cols"><th class="rowlab"></th>` + COLS.map(c=>`<th>${c.h}</th>`).join("") + `</tr></thead>`;
+  return h;
+}
+function dataRow(label, sub, r, cls){
+  return `<tr class="${cls||""}"><td class="rowlab">${label}${sub?`<span class="dow">${sub}</span>`:""}</td>` +
+    COLS.map(c=>`<td class="${c.hl?"hl":""}">${c.f(r)}</td>`).join("") + `</tr>`;
+}
+function renderPeriods(periods, firstLabel, totalLabel){
+  const base = sumRows(DAILY);
+  const rows = periods.map((p,j)=>scaleRow(base,p.f,j));
+  let h = header(firstLabel) + "<tbody>";
+  periods.forEach((p,i)=> h += dataRow(`<strong>${p.d}</strong>`, p.dow, rows[i]));
+  h += dataRow(totalLabel, "", sumRows(rows), "total") + "</tbody>";
+  tbl.innerHTML = h;
+}
+function renderDaily(){
+  let h = header("Date") + "<tbody>";
+  DAYS.forEach((d,i)=> h += dataRow(`<strong>${d.d}</strong>`, d.dow, DAILY[i]));
+  h += dataRow("Total \u00B7 5D", "", sumRows(DAILY), "total") + "</tbody>";
+  tbl.innerHTML = h;
+}
+function renderPlacement(){
+  const base = sumRows(DAILY);
+  let h = `<thead><tr class="bands"><th class="rowlab">Placement</th><th colspan="${COLS.length}">FLIPKART \u00B7 ${EFF_LABEL} BY PLACEMENT \u00B7 WK 36</th></tr>`;
+  h += `<tr class="cols"><th class="rowlab"></th>` + COLS.map(c=>`<th>${c.h}</th>`).join("") + `</tr></thead><tbody>`;
+  const rows = PLACEMENTS.map(([name,share,eff])=>{
+    const r = {}; Object.keys(base).forEach(k=>r[k]=base[k]*share*1.38);
+    ["sales","orders","units","directSales"].forEach(k=>{ if(k in r) r[k]*=eff; });
+    return {name, r};
+  });
+  rows.forEach(x => h += dataRow(x.name, "", x.r));
+  h += dataRow("All placements", "", sumRows(rows.map(x=>x.r)), "total") + "</tbody>";
+  tbl.innerHTML = h;
+}
+
+const tbl = document.getElementById("tbl");
+const VIEWS = [
+  {name:"Daily Log", note:"Total-row rates are recomputed from summed counts, never averaged.", render:renderDaily},
+  {name:"Weekly Summary", note:"Monday-start weeks; the current week is partial.", render:()=>renderPeriods(WEEKS,"Week","Total \u00B7 4W")},
+  {name:"Monthly Summary", note:"Calendar months; the current month is month-to-date.", render:()=>renderPeriods(MONTHS,"Month","Total \u00B7 4M")},
+];
+if (PLACEMENTS) VIEWS.push({name:"Placement", note:"Placement names are the platform's own.", render:renderPlacement});
+const tabsEl = document.getElementById("tabs"), noteEl = document.getElementById("tabnote");
+VIEWS.forEach((v,i)=>{
+  const b = document.createElement("button");
+  b.className = "tab"+(i===0?" on":""); b.setAttribute("role","tab"); b.textContent = v.name;
+  b.onclick = ()=>{ document.querySelectorAll(".tab").forEach(t=>t.classList.remove("on")); b.classList.add("on"); v.render(); noteEl.textContent=v.note; };
+  tabsEl.appendChild(b);
+});
+VIEWS[0].render(); noteEl.textContent = VIEWS[0].note;
+</script>
+</body>
+</html>
