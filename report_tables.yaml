@@ -1,0 +1,115 @@
+# Daily report tables — machine-readable spec. One entry per platform: the exact table
+# to render (columns in order, formulas, headline metric, views, placements).
+# The HTML files in this repo implement this spec; an agent/product should render
+# tables FROM this file so the right vocabulary always shows for the right platform.
+
+rules:
+  - "each platform speaks its own vocabulary — never mix (no ACOS outside Amazon, no ROAS label on Flipkart)"
+  - "total rows recompute every rate/ratio from summed counts — never average the period values"
+  - "currency is ₹ with Indian digit grouping (en-IN); multipliers shown as '0.00x'"
+  - "the headline column is bold — it is the platform's native efficiency metric"
+
+views:
+  daily_log: "one row per day, newest first + total row"
+  weekly_summary: "Monday-start weeks; current week labeled partial"
+  monthly_summary: "calendar months; current month labeled MTD"
+  placement: "one row per placement (ad platforms only; names are the platform's own)"
+
+platforms:
+  amazon:
+    files: [amazon.html, tailwind/amazon.html]
+    headline: acos
+    views: [daily_log, weekly_summary, monthly_summary, placement]
+    placements: [Top of Search, Rest of Search, Product Pages]
+    base_fields: [spend, sales, orders, units, clicks, impressions]
+    columns:
+      - {label: Spend, field: spend, format: currency}
+      - {label: Sales, field: sales, format: currency}
+      - {label: Units, field: units, format: int}
+      - {label: Clicks, field: clicks, format: int}
+      - {label: "Impr.", field: impressions, format: int}
+      - {label: ACOS, formula: "spend / sales * 100", format: pct1, headline: true}
+      - {label: ROAS, formula: "sales / spend", format: multiplier}
+      - {label: CPC, formula: "spend / clicks", format: currency2}
+      - {label: CVR, formula: "orders / clicks * 100", format: pct2}
+      - {label: AOV, formula: "sales / orders", format: currency2}
+
+  flipkart:
+    files: [flipkart.html, tailwind/flipkart.html]
+    headline: roi
+    never_show: [ACOS, "ROAS (label)"]
+    views: [daily_log, weekly_summary, monthly_summary, placement]
+    placements: [Top of Search, Rest of Search, Browse, Product Page]
+    base_fields: [spend, sales, direct_sales, orders, units, clicks, impressions]
+    columns:
+      - {label: Spend, field: spend, format: currency}
+      - {label: Sales, field: sales, format: currency}
+      - {label: Units, field: units, format: int}
+      - {label: Clicks, field: clicks, format: int}
+      - {label: Views, field: impressions, format: int}   # Flipkart's word for impressions
+      - {label: ROI, formula: "sales / spend", format: multiplier, headline: true}   # includes indirect (halo) sales
+      - {label: Direct ROI, formula: "direct_sales / spend", format: multiplier}
+      - {label: CPC, formula: "spend / clicks", format: currency2}
+      - {label: CVR, formula: "orders / clicks * 100", format: pct2}
+      - {label: AOV, formula: "sales / orders", format: currency2}
+
+  meta:
+    files: [meta.html, tailwind/meta.html]
+    headline: roas
+    never_show: [ACOS, ROI]
+    views: [daily_log, weekly_summary, monthly_summary, placement]
+    placements: [Feed, Reels, Stories, Audience Network]
+    base_fields: [spend, sales, orders, clicks, impressions]   # sales = purchase conv. value; clicks = LINK clicks
+    columns:
+      - {label: Spend, field: spend, format: currency}
+      - {label: Revenue, field: sales, format: currency}
+      - {label: Purchases, field: orders, format: int}
+      - {label: Link Clicks, field: clicks, format: int}   # not Clicks (all)
+      - {label: "Impr.", field: impressions, format: int}
+      - {label: ROAS, formula: "sales / spend", format: multiplier, headline: true}
+      - {label: CPM, formula: "spend / impressions * 1000", format: currency2}
+      - {label: CPC, formula: "spend / clicks", format: currency2}   # cost per link click
+      - {label: CTR, formula: "clicks / impressions * 100", format: pct2}   # link CTR
+      - {label: CPA, formula: "spend / orders", format: currency2}   # cost per purchase
+      - {label: AOV, formula: "sales / orders", format: currency2}
+
+  google:
+    files: [google.html, tailwind/google.html]
+    headline: conv_value_per_cost
+    never_show: [ACOS]
+    views: [daily_log, weekly_summary, monthly_summary, placement]
+    placements: [Google Search, Search Partners, Display Network]
+    base_fields: [spend, sales, orders, clicks, impressions]   # orders = include-in-conversions actions
+    columns:
+      - {label: Cost, field: spend, format: currency}
+      - {label: "Conv. Value", field: sales, format: currency}
+      - {label: "Conv.", field: orders, format: int}
+      - {label: Clicks, field: clicks, format: int}
+      - {label: "Impr.", field: impressions, format: int}
+      - {label: "Conv. Val / Cost", formula: "sales / spend", format: multiplier, headline: true}   # Google's own label — no column named ROAS
+      - {label: CPC, formula: "spend / clicks", format: currency2}
+      - {label: CVR, formula: "orders / clicks * 100", format: pct2}
+      - {label: CPA, formula: "spend / orders", format: currency2}
+      - {label: AOV, formula: "sales / orders", format: currency2}
+
+  shopify:
+    files: [shopify.html, tailwind/shopify.html]
+    headline: cvr
+    never_show: [ROAS, ACOS]   # store ledger, not an ad platform
+    views: [daily_log, weekly_summary, monthly_summary]
+    base_fields: [sessions, orders, sales, returning]
+    columns:
+      - {label: Sessions, field: sessions, format: int}
+      - {label: Orders, field: orders, format: int}
+      - {label: Total Sales, field: sales, format: currency}
+      - {label: CVR, formula: "orders / sessions * 100", format: pct2, headline: true}
+      - {label: AOV, formula: "sales / orders", format: currency2}
+      - {label: "Returning %", formula: "returning / orders * 100", format: pct1}
+
+formats:
+  currency: "₹ + rounded int, en-IN grouping"
+  currency2: "₹ + 2 decimals, en-IN grouping"
+  int: "rounded int, en-IN grouping"
+  pct1: "1 decimal + %"
+  pct2: "2 decimals + %"
+  multiplier: "2 decimals + 'x'"
