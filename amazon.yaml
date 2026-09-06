@@ -10,6 +10,7 @@ metrics:
   - {label: "Impr.", field: impressions}
   - {label: CTR, formula: "clicks / impressions * 100"}
   - {label: CPC, formula: "spend / clicks"}
+  - {label: CVR, formula: "purchases / clicks * 100"}
   - {label: ACOS, formula: "spend / sales * 100", headline: true}
   - {label: ROAS, formula: "sales / spend"}
   - {label: "Top-of-Search IS", field: top_of_search_impression_share}   # % of eligible top-of-search impressions won
