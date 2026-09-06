@@ -1,14 +1,18 @@
-# Flipkart daily report table — metrics in display order.
+# Flipkart Ads daily report table — Flipkart's own report columns, in display order.
 # field = raw value from the platform; formula = derived. headline = native efficiency metric.
+# Flipkart splits everything direct (advertised product) vs indirect (halo) — the table keeps that split.
 
 metrics:
   - {label: Spend, field: spend}
-  - {label: Sales, field: sales}
-  - {label: Units, field: units}
+  - {label: Views, field: views}                     # Flipkart's word for impressions
   - {label: Clicks, field: clicks}
-  - {label: Views, field: impressions}                        # Flipkart's word for impressions
-  - {label: ROI, formula: "sales / spend", headline: true}    # includes indirect (halo) sales
-  - {label: Direct ROI, formula: "direct_sales / spend"}
+  - {label: CTR, formula: "clicks / views * 100"}
   - {label: CPC, formula: "spend / clicks"}
-  - {label: CVR, formula: "orders / clicks * 100"}
-  - {label: AOV, formula: "sales / orders"}
+  - {label: PPV, field: product_page_views}          # product-page views from the ad click
+  - {label: ATC, field: add_to_cart}                 # add-to-cart actions from the ad click
+  - {label: Direct Units, field: direct_units}
+  - {label: Indirect Units, field: indirect_units}
+  - {label: Direct Revenue, field: direct_revenue}
+  - {label: Indirect Revenue, field: indirect_revenue}
+  - {label: ROI, formula: "(direct_revenue + indirect_revenue) / spend", headline: true}
+  - {label: Direct ROI, formula: "direct_revenue / spend"}

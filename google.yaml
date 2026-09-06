@@ -1,14 +1,16 @@
-# Google daily report table — metrics in display order.
+# Google Ads daily report table — Google's own report columns, in display order.
 # field = raw value from the platform; formula = derived. headline = native efficiency metric.
 
 metrics:
   - {label: Cost, field: cost}
-  - {label: "Conv. Value", field: conv_value}
-  - {label: "Conv.", field: conversions}
-  - {label: Clicks, field: clicks}
   - {label: "Impr.", field: impressions}
-  - {label: "Conv. Val / Cost", formula: "conv_value / cost", headline: true}   # Google's ROAS — no ACOS
-  - {label: CPC, formula: "cost / clicks"}
-  - {label: CVR, formula: "conversions / clicks * 100"}
-  - {label: CPA, formula: "cost / conversions"}
-  - {label: AOV, formula: "conv_value / conversions"}
+  - {label: Clicks, field: clicks}
+  - {label: CTR, formula: "clicks / impressions * 100"}
+  - {label: "Avg. CPC", formula: "cost / clicks"}
+  - {label: Conversions, field: conversions}         # include-in-conversions actions only
+  - {label: "Conv. Rate", formula: "conversions / clicks * 100"}
+  - {label: "Cost / Conv.", formula: "cost / conversions"}
+  - {label: "Conv. Value", field: conv_value}
+  - {label: "Conv. Val / Cost", formula: "conv_value / cost", headline: true}   # Google's ROAS column
+  - {label: "Search Impr. Share", field: search_impression_share}
+  - {label: "Lost IS (Budget)", field: search_lost_is_budget}   # campaign level only

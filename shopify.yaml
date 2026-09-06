@@ -1,10 +1,13 @@
-# Shopify daily report table — metrics in display order.
+# Shopify daily report table — the store ledger (order truth, all channels), in display order.
 # field = raw value from the platform; formula = derived. headline = native efficiency metric.
 
 metrics:
   - {label: Sessions, field: sessions}
   - {label: Orders, field: orders}
+  - {label: Gross Sales, field: gross_sales}
+  - {label: Discounts, field: discounts}
+  - {label: Net Sales, formula: "gross_sales - discounts - sales_reversals"}
   - {label: Total Sales, field: total_sales}
-  - {label: CVR, formula: "orders / sessions * 100", headline: true}
-  - {label: AOV, formula: "total_sales / orders"}
-  - {label: "Returning %", formula: "returning_orders / orders * 100"}
+  - {label: CVR, formula: "orders / sessions * 100", headline: true}   # online store conversion rate
+  - {label: AOV, formula: "(gross_sales - discounts) / orders"}
+  - {label: "Returning %", formula: "returning_customers / customers * 100"}

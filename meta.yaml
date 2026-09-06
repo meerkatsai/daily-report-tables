@@ -1,15 +1,16 @@
-# Meta daily report table — metrics in display order.
+# Meta Ads daily report table — Meta's own report columns, in display order.
 # field = raw value from the platform; formula = derived. headline = native efficiency metric.
 
 metrics:
-  - {label: Spend, field: spend}
-  - {label: Revenue, field: purchase_value}
-  - {label: Purchases, field: purchases}
-  - {label: Link Clicks, field: link_clicks}                  # not Clicks (all)
+  - {label: Amount Spent, field: spend}
   - {label: "Impr.", field: impressions}
-  - {label: ROAS, formula: "purchase_value / spend", headline: true}   # no ACOS on Meta
+  - {label: Reach, field: reach}                     # unique people; does not sum across rows
+  - {label: Frequency, formula: "impressions / reach"}
   - {label: CPM, formula: "spend / impressions * 1000"}
-  - {label: CPC, formula: "spend / link_clicks"}
+  - {label: Link Clicks, field: link_clicks}         # not Clicks (all)
   - {label: CTR, formula: "link_clicks / impressions * 100"}
-  - {label: CPA, formula: "spend / purchases"}
-  - {label: AOV, formula: "purchase_value / purchases"}
+  - {label: CPC, formula: "spend / link_clicks"}
+  - {label: Purchases, field: purchases}
+  - {label: Purchase Value, field: purchase_value}
+  - {label: ROAS, formula: "purchase_value / spend", headline: true}
+  - {label: Cost per Purchase, formula: "spend / purchases"}
