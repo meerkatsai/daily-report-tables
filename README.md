@@ -32,3 +32,11 @@ swap in real period rollups. All shipped numbers are synthetic sample data.
 
 Open any file directly in a browser — no build step, no dependencies beyond a Google Fonts
 stylesheet.
+
+## Tailwind versions
+
+The same five tables also exist as Tailwind CSS builds in [`tailwind/`](tailwind/) —
+identical columns, data shape, and behavior, styled entirely with utility classes (Play CDN
+for standalone use; copy the classes straight into a Tailwind project). The `COLS` and
+`DAILY` structures are byte-identical between the two flavors, so a change in one ports to
+the other mechanically.

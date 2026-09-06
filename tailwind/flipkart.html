@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Flipkart Daily Report Table (Tailwind)</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = { theme: { extend: {
+  colors: { brand: "#C99700" },
+  fontFamily: { sans: ['"IBM Plex Sans"', "system-ui", "sans-serif"] },
+}}};
+</script>
+</head>
+<body class="bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-200 font-sans text-sm p-7 pb-12">
+
+<div class="flex flex-wrap items-baseline gap-3.5 mb-1.5">
+  <h1 class="text-xl font-bold tracking-tight m-0"><span class="text-brand">FLIPKART</span> Daily Report</h1>
+  <span class="text-slate-500 dark:text-slate-400 text-[13px]">Native vocabulary: ROI (multiplier, includes indirect sales) with Direct ROI beside it; impressions are Views. Never show ACOS or a ROAS label here.</span>
+  <span class="text-[11px] font-semibold tracking-wider uppercase text-slate-400 dark:text-slate-500 border border-slate-300 dark:border-slate-700 rounded-full px-2.5 py-0.5">Sample data — replace DAILY with API rows</span>
+</div>
+
+<div class="flex flex-wrap gap-0.5 mt-4 border-b border-slate-300 dark:border-slate-700" role="tablist" id="tabs"></div>
+<div class="overflow-x-auto bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl mt-4">
+  <table class="border-separate border-spacing-0 min-w-full w-max tabular-nums" id="tbl"></table>
+</div>
+<p class="text-slate-500 dark:text-slate-400 text-[12.5px] mt-2.5" id="tabnote"></p>
+
+<script>
+/* ============ formatting (Indian digit grouping) ============ */
+const inr  = n => "\u20B9" + Math.round(n).toLocaleString("en-IN");
+const inr2 = n => "\u20B9" + n.toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2});
+const num  = n => Math.round(n).toLocaleString("en-IN");
+const pct  = n => n.toFixed(2) + "%";
+const pct1 = n => n.toFixed(1) + "%";
+const mult = n => n.toFixed(2) + "x";
+
+/* ============ Tailwind class snippets ============ */
+const C = {
+  cell: "px-3 py-2 whitespace-nowrap text-right border-b border-slate-100 dark:border-slate-700/60",
+  band: "px-3 py-2 text-center text-white bg-brand text-xs font-bold tracking-[.14em]",
+  col:  "px-3 py-2 text-right text-[10.5px] font-semibold tracking-wider uppercase text-slate-400 dark:text-slate-500 border-b border-slate-300 dark:border-slate-600",
+  rowlab: "px-3 py-2 text-left sticky left-0 bg-inherit z-10 border-r border-slate-300 dark:border-slate-600 font-semibold min-w-[118px] whitespace-nowrap border-b border-b-slate-100 dark:border-b-slate-700/60",
+  tr:   "bg-white even:bg-slate-50 dark:bg-slate-800 dark:even:bg-slate-800/40",
+  trTotal: "bg-slate-900 text-slate-100 dark:bg-black",
+  dow:  "text-slate-400 dark:text-slate-500 font-normal text-xs ml-1.5",
+};
+
+/* ============ COLUMN CONTRACT — FLIPKART native vocabulary ============ */
+/* Rates are ALWAYS recomputed from summed counts, never averaged. */
+const COLS = [
+  {h:"Spend",      f:r=>inr(r.spend)},
+  {h:"Sales",      f:r=>inr(r.sales)},
+  {h:"Units",      f:r=>num(r.units)},
+  {h:"Clicks",     f:r=>num(r.clicks)},
+  {h:"Views",      f:r=>num(r.impressions)},               /* Flipkart's word for impressions */
+  {h:"ROI",        f:r=>mult(r.sales/r.spend), hl:true},   /* total (direct+indirect) revenue / spend */
+  {h:"Direct ROI", f:r=>mult(r.directSales/r.spend)},      /* advertised-product revenue / spend */
+  {h:"CPC",        f:r=>inr2(r.spend/r.clicks)},
+  {h:"CVR",        f:r=>pct(r.orders/r.clicks*100)},
+  {h:"AOV",        f:r=>inr2(r.sales/r.orders)},
+];
+
+/* ============ sample data: one row per day (newest first) ============ */
+const DAYS = [
+  {d:"5 Sept", dow:"Sat"}, {d:"4 Sept", dow:"Fri"}, {d:"3 Sept", dow:"Thu"},
+  {d:"2 Sept", dow:"Wed"}, {d:"1 Sept", dow:"Tue"},
+];
+const DAILY = [
+  {spend:7480,  sales:5590, directSales:4420, orders:12, units:12, clicks:549,  impressions:93210},
+  {spend:6430,  sales:5880, directSales:4870, orders:11, units:11, clicks:583,  impressions:85630},
+  {spend:9310,  sales:6180, directSales:4700, orders:14, units:14, clicks:693,  impressions:103870},
+  {spend:8890,  sales:7280, directSales:5750, orders:16, units:16, clicks:764,  impressions:114520},
+  {spend:10650, sales:7020, directSales:5270, orders:15, units:15, clicks:1104, impressions:191330},
+];
+
+const WEEKS  = [{d:"Wk 36", dow:"1\u20137 Sep", f:1.38},{d:"Wk 35", dow:"25\u201331 Aug", f:1.31},{d:"Wk 34", dow:"18\u201324 Aug", f:1.44},{d:"Wk 33", dow:"11\u201317 Aug", f:1.26}];
+const MONTHS = [{d:"Sept", dow:"MTD", f:1.0},{d:"Aug", dow:"", f:5.9},{d:"July", dow:"", f:5.4},{d:"June", dow:"", f:6.2}];
+const PLACEMENTS = [["Top of Search",.38,1.30],["Rest of Search",.27,.82],["Browse",.19,.70],["Product Page",.16,.95]];
+const EFF_LABEL = "ROI";
+
+function sumRows(rows){ const t={}; rows.forEach(r=>Object.keys(r).forEach(k=>t[k]=(t[k]||0)+r[k])); return t; }
+function scaleRow(r,f,j){ const o={}; Object.keys(r).forEach((k,i)=>o[k]=r[k]*f*(1+0.07*Math.sin(j*2.7+i))); return o; }
+
+function header(firstLabel, bandText){
+  return `<thead><tr class="bg-white dark:bg-slate-800"><th class="${C.rowlab} border-b-0">${firstLabel}</th><th colspan="${COLS.length}" class="${C.band}">${bandText||"FLIPKART"}</th></tr>` +
+    `<tr class="bg-white dark:bg-slate-800"><th class="${C.rowlab}"></th>` + COLS.map(c=>`<th class="${C.col}">${c.h}</th>`).join("") + `</tr></thead>`;
+}
+function dataRow(label, sub, r, total){
+  return `<tr class="${total?C.trTotal:C.tr}"><td class="${C.rowlab} ${total?"uppercase text-xs tracking-wider":""}">${label}${sub?`<span class="${C.dow}">${sub}</span>`:""}</td>` +
+    COLS.map(c=>`<td class="${C.cell} ${c.hl||total?"font-bold":""} ${total?"border-b-0 font-semibold":""}">${c.f(r)}</td>`).join("") + `</tr>`;
+}
+function renderDaily(){
+  let h = header("Date") + "<tbody>";
+  DAYS.forEach((d,i)=> h += dataRow(`<strong>${d.d}</strong>`, d.dow, DAILY[i]));
+  h += dataRow("Total \u00B7 5D", "", sumRows(DAILY), true) + "</tbody>";
+  tbl.innerHTML = h;
+}
+function renderPeriods(periods, firstLabel, totalLabel){
+  const base = sumRows(DAILY);
+  const rows = periods.map((p,j)=>scaleRow(base,p.f,j));
+  let h = header(firstLabel) + "<tbody>";
+  periods.forEach((p,i)=> h += dataRow(`<strong>${p.d}</strong>`, p.dow, rows[i]));
+  h += dataRow(totalLabel, "", sumRows(rows), true) + "</tbody>";
+  tbl.innerHTML = h;
+}
+function renderPlacement(){
+  const base = sumRows(DAILY);
+  let h = header("Placement", `FLIPKART \u00B7 ${EFF_LABEL} BY PLACEMENT \u00B7 WK 36`) + "<tbody>";
+  const rows = PLACEMENTS.map(([name,share,eff])=>{
+    const r = {}; Object.keys(base).forEach(k=>r[k]=base[k]*share*1.38);
+    ["sales","orders","units","directSales"].forEach(k=>{ if(k in r) r[k]*=eff; });
+    return {name, r};
+  });
+  rows.forEach(x => h += dataRow(x.name, "", x.r));
+  h += dataRow("All placements", "", sumRows(rows.map(x=>x.r)), true) + "</tbody>";
+  tbl.innerHTML = h;
+}
+
+const tbl = document.getElementById("tbl");
+const VIEWS = [
+  {name:"Daily Log", note:"Total-row rates are recomputed from summed counts, never averaged.", render:renderDaily},
+  {name:"Weekly Summary", note:"Monday-start weeks; the current week is partial.", render:()=>renderPeriods(WEEKS,"Week","Total \u00B7 4W")},
+  {name:"Monthly Summary", note:"Calendar months; the current month is month-to-date.", render:()=>renderPeriods(MONTHS,"Month","Total \u00B7 4M")},
+];
+if (PLACEMENTS) VIEWS.push({name:"Placement", note:"Placement names are the platform's own.", render:renderPlacement});
+const tabsEl = document.getElementById("tabs"), noteEl = document.getElementById("tabnote");
+const TAB = "bg-transparent border-0 border-b-2 border-transparent text-slate-500 dark:text-slate-400 text-sm font-medium px-3.5 py-2 cursor-pointer hover:text-slate-800 dark:hover:text-slate-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand -outline-offset-2";
+const TAB_ON = "!text-slate-900 dark:!text-slate-100 font-semibold !border-slate-800 dark:!border-slate-200";
+VIEWS.forEach((v,i)=>{
+  const b = document.createElement("button");
+  b.className = TAB + (i===0?" "+TAB_ON:""); b.setAttribute("role","tab"); b.textContent = v.name;
+  b.onclick = ()=>{ document.querySelectorAll("#tabs button").forEach(t=>t.className=TAB); b.className=TAB+" "+TAB_ON; v.render(); noteEl.textContent=v.note; };
+  tabsEl.appendChild(b);
+});
+VIEWS[0].render(); noteEl.textContent = VIEWS[0].note;
+</script>
+</body>
+</html>
