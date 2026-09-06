@@ -1,0 +1,10 @@
+# Shopify daily report table — metrics in display order.
+# field = raw value from the platform; formula = derived. headline = native efficiency metric.
+
+metrics:
+  - {label: Sessions, field: sessions}
+  - {label: Orders, field: orders}
+  - {label: Total Sales, field: total_sales}
+  - {label: CVR, formula: "orders / sessions * 100", headline: true}
+  - {label: AOV, formula: "total_sales / orders"}
+  - {label: "Returning %", formula: "returning_orders / orders * 100"}

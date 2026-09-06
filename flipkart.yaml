@@ -1,0 +1,14 @@
+# Flipkart daily report table — metrics in display order.
+# field = raw value from the platform; formula = derived. headline = native efficiency metric.
+
+metrics:
+  - {label: Spend, field: spend}
+  - {label: Sales, field: sales}
+  - {label: Units, field: units}
+  - {label: Clicks, field: clicks}
+  - {label: Views, field: impressions}                        # Flipkart's word for impressions
+  - {label: ROI, formula: "sales / spend", headline: true}    # includes indirect (halo) sales
+  - {label: Direct ROI, formula: "direct_sales / spend"}
+  - {label: CPC, formula: "spend / clicks"}
+  - {label: CVR, formula: "orders / clicks * 100"}
+  - {label: AOV, formula: "sales / orders"}

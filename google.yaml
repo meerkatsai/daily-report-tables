@@ -1,0 +1,14 @@
+# Google daily report table — metrics in display order.
+# field = raw value from the platform; formula = derived. headline = native efficiency metric.
+
+metrics:
+  - {label: Cost, field: cost}
+  - {label: "Conv. Value", field: conv_value}
+  - {label: "Conv.", field: conversions}
+  - {label: Clicks, field: clicks}
+  - {label: "Impr.", field: impressions}
+  - {label: "Conv. Val / Cost", formula: "conv_value / cost", headline: true}   # Google's ROAS — no ACOS
+  - {label: CPC, formula: "cost / clicks"}
+  - {label: CVR, formula: "conversions / clicks * 100"}
+  - {label: CPA, formula: "cost / conversions"}
+  - {label: AOV, formula: "conv_value / conversions"}

@@ -1,0 +1,15 @@
+# Meta daily report table — metrics in display order.
+# field = raw value from the platform; formula = derived. headline = native efficiency metric.
+
+metrics:
+  - {label: Spend, field: spend}
+  - {label: Revenue, field: purchase_value}
+  - {label: Purchases, field: purchases}
+  - {label: Link Clicks, field: link_clicks}                  # not Clicks (all)
+  - {label: "Impr.", field: impressions}
+  - {label: ROAS, formula: "purchase_value / spend", headline: true}   # no ACOS on Meta
+  - {label: CPM, formula: "spend / impressions * 1000"}
+  - {label: CPC, formula: "spend / link_clicks"}
+  - {label: CTR, formula: "link_clicks / impressions * 100"}
+  - {label: CPA, formula: "spend / purchases"}
+  - {label: AOV, formula: "purchase_value / purchases"}

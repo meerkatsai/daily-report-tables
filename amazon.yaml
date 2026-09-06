@@ -1,0 +1,14 @@
+# Amazon daily report table — metrics in display order.
+# field = raw value from the platform; formula = derived. headline = native efficiency metric.
+
+metrics:
+  - {label: Spend, field: spend}
+  - {label: Sales, field: sales}
+  - {label: Units, field: units}
+  - {label: Clicks, field: clicks}
+  - {label: "Impr.", field: impressions}
+  - {label: ACOS, formula: "spend / sales * 100", headline: true}
+  - {label: ROAS, formula: "sales / spend"}
+  - {label: CPC, formula: "spend / clicks"}
+  - {label: CVR, formula: "orders / clicks * 100"}
+  - {label: AOV, formula: "sales / orders"}
